@@ -26,7 +26,11 @@ define Package/wifi2collectd
   TITLE:=WiFi -> collectd plugin (wifi_radio)
   URL:=https://github.com/your/repo
   MAINTAINER:=$(PKG_MAINTAINER)
-  DEPENDS:=+collectd +collectd-mod-lua +iw +luci-lib-ipkg
+  # Minimal runtime deps: collectd (core) and iw. Optional components:
+  # - collectd-mod-lua: needed if you want collectd's Lua module packaged separately in your build
+  # - LuCI packages: only required if you want the LuCI RRD definition to be usable at runtime
+  # Some OpenWrt trees expose different package names; keep only guaranteed deps to avoid false warnings.
+  DEPENDS:=+collectd +iw
 endef
 
 define Package/wifi2collectd/description
