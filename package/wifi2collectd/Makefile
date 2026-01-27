@@ -7,6 +7,7 @@
 #     package/wifi2collectd/files/usr/share/collectd-mod-lua/wifi_clients_to_collectd.lua
 #   (These are the scripts that will be installed to /usr/share/collectd-mod-lua/)
 #
+PKGARCH:=all
 
 include $(TOPDIR)/rules.mk
 
