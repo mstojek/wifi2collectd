@@ -63,16 +63,33 @@ define Package/wifi2collectd/install
 endef
 
 define Package/wifi2collectd/postinst
-	#!/bin/sh
-	# check if we are on real system
-	if [ -z "$${IPKG_INSTROOT}" ]; then
-		## luci_statistics/collectd configuration
-		uci set luci_statistics.collectd.Include='/etc/collectd/conf.d'
-		uci commit
-		/etc/init.d/luci_statistics restart
-		rm -rf /tmp/luci-modulecache/
-	fi
-	exit 0
+#!/bin/sh
+# Check if we are running on the real system (not during image building)
+if [ -z "$${IPKG_INSTROOT}" ]; then
+    
+    # 1. Configure luci_statistics to include our custom config directory
+    uci set luci_statistics.collectd.Include='/etc/collectd/conf.d'
+    uci commit luci_statistics
+
+    # 2. Clear LuCI caches (index and modules)
+    # This forces the web interface to refresh the menu structure
+    rm -rf /tmp/luci-indexcache
+    rm -rf /tmp/luci-modulecache/
+
+    # 3. Restart services
+    # Restart luci_statistics generation
+    /etc/init.d/luci_statistics restart
+    
+    # Force reload of collectd configuration (to start collecting data immediately)
+    /etc/init.d/collectd restart
+
+    # Restart RPCD service
+    # This is CRITICAL - rpcd handles ACLs and menu generation in modern LuCI.
+    # Without this, the new menu tab might not appear until logout/reboot.
+    /etc/init.d/rpcd restart
+fi
+
+exit 0
 endef
 
 $(eval $(call BuildPackage,wifi2collectd))
