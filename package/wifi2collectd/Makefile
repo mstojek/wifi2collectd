@@ -18,7 +18,7 @@ PKG_MAINTAINER:=Marcin Stojek <mstojek@gmail.com>
 PKG_LICENSE:=GPL-3.0
 PKG_LICENSE_FILES:=files/usr/share/doc/wifi2collectd/COPYING
 
-PKGARCH:=all
+#PKGARCH:=all
 $(warning DEBUG: PKGARCH is set to [$(PKGARCH)])
 
 include $(INCLUDE_DIR)/package.mk
@@ -35,6 +35,7 @@ define Package/wifi2collectd
   # Some OpenWrt trees expose different package names; keep only guaranteed deps to avoid false warnings.
   # DEPENDS:=+collectd +collectd-mod-lua +iw +luci-lib-ipkg
   DEPENDS:=+collectd +collectd-mod-lua +iw 
+  PKGARCH:=all
 endef
 
 define Package/wifi2collectd/description
