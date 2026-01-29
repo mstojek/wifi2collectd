@@ -34,7 +34,7 @@ define Package/wifi2collectd
   # - LuCI packages: only required if you want the LuCI RRD definition to be usable at runtime
   # Some OpenWrt trees expose different package names; keep only guaranteed deps to avoid false warnings.
   # DEPENDS:=+collectd +collectd-mod-lua +iw +luci-lib-ipkg
-  DEPENDS:=+collectd +collectd-mod-lua +iw 
+  DEPENDS:=+collectd +collectd-mod-lua +iw +luci-app-statistics
   PKGARCH:=all
 endef
 
