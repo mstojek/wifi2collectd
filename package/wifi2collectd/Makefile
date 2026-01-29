@@ -84,9 +84,9 @@ if [ -z "$${IPKG_INSTROOT}" ]; then
     /etc/init.d/collectd restart
 
     # Restart RPCD service
-    # This is CRITICAL - rpcd handles ACLs and menu generation in modern LuCI.
+    # rpcd handles ACLs and menu generation in modern LuCI.
     # Without this, the new menu tab might not appear until logout/reboot.
-    /etc/init.d/rpcd restart
+    /etc/init.d/rpcd reload 2>/dev/null || /etc/init.d/rpcd restart
 fi
 
 exit 0
