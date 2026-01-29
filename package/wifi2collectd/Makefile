@@ -19,7 +19,7 @@ PKG_LICENSE:=GPL-3.0
 PKG_LICENSE_FILES:=files/usr/share/doc/wifi2collectd/COPYING
 
 #PKGARCH:=all
-$(warning DEBUG: PKGARCH is set to [$(PKGARCH)])
+#$(warning DEBUG: PKGARCH is set to [$(PKGARCH)])
 
 include $(INCLUDE_DIR)/package.mk
 
