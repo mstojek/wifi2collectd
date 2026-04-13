@@ -6,6 +6,8 @@
 local debug = false -- Set to true to enable debug logging
 local host = ''
 local plugin_name = "wifi_radio"
+local plugin_name_bitrate_tx = "wifi_bitrate_tx"
+local plugin_name_bitrate_rx = "wifi_bitrate_rx"
 --local interval = read_config("Interval") or 30 -- Default interval 30 seconds (can be overridden in collectd.conf)
 
 -- Global variables (if needed, although not strictly necessary here)
@@ -163,10 +165,10 @@ local function dispatch_client_metrics(host, plugin_name, iface, host_resolved, 
     if client_metrics.rx_rate then
         local rx_val = {
             host = host,
-            plugin = plugin_name,
+            plugin = plugin_name_bitrate_rx,
             plugin_instance = iface,
             type = "bitrate",
-            type_instance = "rx_" .. host_resolved,
+            type_instance = host_resolved,
             values = {client_metrics.rx_rate}
         }
         collectd.dispatch_values(rx_val)
@@ -184,10 +186,10 @@ local function dispatch_client_metrics(host, plugin_name, iface, host_resolved, 
     if client_metrics.tx_rate then
         local tx_val = {
             host = host,
-            plugin = plugin_name,
+            plugin = plugin_name_bitrate_tx,
             plugin_instance = iface,
             type = "bitrate",
-            type_instance = "tx_" .. host_resolved,
+            type_instance = host_resolved,
             values = {client_metrics.tx_rate}
         }
         collectd.dispatch_values(tx_val)
