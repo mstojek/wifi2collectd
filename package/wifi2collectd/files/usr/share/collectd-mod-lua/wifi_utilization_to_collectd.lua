@@ -238,7 +238,7 @@ end
 
 
 local function read()
-    local ifaces_output = exec("/usr/sbin/iw dev | awk '/Interface/ {print $2}'")
+    local ifaces_output = exec("iw dev | awk '/Interface/ {print $2}'")
     if not ifaces_output or string.len(ifaces_output) == 0 then
         collectd.log_error("Failed to get wireless interfaces list using 'iw dev'")
         return -1
@@ -254,7 +254,7 @@ local function read()
 
     for _, iface in ipairs(ifaces) do
         local iface_safe = get_safe_iface_name(iface)
-        local output = exec("/usr/sbin/iw dev " .. iface .. " survey dump 2>/dev/null")
+        local output = exec("iw dev " .. iface .. " survey dump 2>/dev/null")
         if not output or string.len(output) == 0 then
             collectd.log_error("Command 'iw dev " .. iface .. " survey dump' failed or returned no output for interface " .. iface)
         else
