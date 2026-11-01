@@ -358,7 +358,7 @@ local function parse_station_data_line(line, client_data)
 end
 
 local function read()
-    local ifaces_output = exec("/usr/sbin/iw dev | awk '/Interface/ {print $2}'") -- Use custom exec
+    local ifaces_output = exec("iw dev | awk '/Interface/ {print $2}'") -- Use custom exec
     if not ifaces_output then
         collectd.log_error("Failed to get wireless interfaces list using 'iw dev'")
         return -1 -- Return 0 for read failure (as per previous correction - should be numeric status)
@@ -373,7 +373,7 @@ local function read()
     end
 
     for _, iface in ipairs(ifaces) do
-        local clients_output = exec("/usr/sbin/iw dev \"" .. iface .. "\" station dump")
+        local clients_output = exec("iw dev \"" .. iface .. "\" station dump")
         if clients_output and string.len(clients_output) > 0 then
             local client_blocks = {} -- To store data for each client
 

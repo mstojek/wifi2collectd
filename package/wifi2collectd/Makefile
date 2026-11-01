@@ -1,12 +1,6 @@
 #
 # OpenWrt package makefile for wifi2collectd
 #
-# NOTE:
-# - Before building the package, copy the two Lua scripts into:
-#     package/wifi2collectd/files/usr/share/collectd-mod-lua/wifi_utilization_to_collectd.lua
-#     package/wifi2collectd/files/usr/share/collectd-mod-lua/wifi_clients_to_collectd.lua
-#   (These are the scripts that will be installed to /usr/share/collectd-mod-lua/)
-#
 
 include $(TOPDIR)/rules.mk
 
@@ -18,9 +12,6 @@ PKG_MAINTAINER:=Marcin Stojek <mstojek@gmail.com>
 PKG_LICENSE:=GPL-3.0
 PKG_LICENSE_FILES:=files/usr/share/doc/wifi2collectd/COPYING
 
-#PKGARCH:=all
-#$(warning DEBUG: PKGARCH is set to [$(PKGARCH)])
-
 include $(INCLUDE_DIR)/package.mk
 
 define Package/wifi2collectd
@@ -29,11 +20,6 @@ define Package/wifi2collectd
   TITLE:=WiFi -> collectd plugin (wifi_radio)
   URL:=https://github.com/mstojek/wifi2collectd
   MAINTAINER:=$(PKG_MAINTAINER)
-  # Minimal runtime deps: collectd (core) and iw. Optional components:
-  # - collectd-mod-lua: needed if you want collectd's Lua module packaged separately in your build
-  # - LuCI packages: only required if you want the LuCI RRD definition to be usable at runtime
-  # Some OpenWrt trees expose different package names; keep only guaranteed deps to avoid false warnings.
-  # DEPENDS:=+collectd +collectd-mod-lua +iw +luci-lib-ipkg
   DEPENDS:=+collectd +collectd-mod-lua +iw +luci-app-statistics
   PKGARCH:=all
 endef
@@ -88,6 +74,24 @@ if [ -z "$${IPKG_INSTROOT}" ]; then
     # Restart RPCD service
     # rpcd handles ACLs and menu generation in modern LuCI.
     # Without this, the new menu tab might not appear until logout/reboot.
+    /etc/init.d/rpcd reload 2>/dev/null || /etc/init.d/rpcd restart
+fi
+
+exit 0
+endef
+
+define Package/wifi2collectd/postrm
+#!/bin/sh
+# Check if we are running on the real system
+if [ -z "$${IPKG_INSTROOT}" ]; then
+
+    # 1. Clear LuCI caches
+    rm -rf /tmp/luci-indexcache
+    rm -rf /tmp/luci-modulecache/
+
+    # 2. Restart services to apply removal
+    /etc/init.d/luci_statistics restart
+    /etc/init.d/collectd restart
     /etc/init.d/rpcd reload 2>/dev/null || /etc/init.d/rpcd restart
 fi
 

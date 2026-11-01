@@ -1,6 +1,6 @@
-# WiFi Radio Monitoring Plugin for Collectd
+# WiFi Radio Monitoring Plugin for Collectd (`wifi2collectd`)
 
-A Lua-based collectd plugin for monitoring WiFi radio utilization and client statistics on OpenWrt/LEDE routers.
+A Lua-based collectd plugin for monitoring WiFi radio utilization and client statistics on OpenWrt routers.
 
 ## Features
 
@@ -9,39 +9,92 @@ A Lua-based collectd plugin for monitoring WiFi radio utilization and client sta
 - **Hostname Resolution:** Automatically resolves MAC addresses to hostnames using various methods
 - **Low Overhead:** Uses native OpenWrt tools without additional dependencies
 
-## Requirements
+## Requirements / Dependencies
 
-- OpenWrt/LEDE with collectd installed
-- collectd with Lua plugin enabled
-- `iw` utility installed (standard on OpenWrt)
+This plugin assumes that you have LuCI and `luci-app-statistics` installed.
+Required libraries (automatically installed with the package) are `collectd`, `collectd-mod-lua`, `iw`, and `luci-app-statistics`.
 
-## Installation
+## Installation Instructions
 
-1. Install collectd with Lua plugin:
-```bash
-opkg update
-opkg install collectd collectd-mod-lua
-```
+### Option 1: Automatic Installation (Recommended)
+Pre-built architecture-independent (`noarch`) packages are available in the [Releases](https://github.com/mstojek/wifi2collectd/releases) section.
 
-2. Copy the plugin files to your router:
-```bash
-scp wifi_utilization_to_collectd.lua wifi_clients_to_collectd.lua root@your-router:/etc/collectd/
-```
+#### For OpenWrt 24.10 and earlier (.ipk)
+1. Download the latest `.ipk` file to your router.
+2. Install it using `opkg`:
+   ```bash
+   opkg update
+   opkg install wifi2collectd_*.ipk
+   ```
 
-3. Add the following to your `/etc/collectd.conf`:
-```
-LoadPlugin lua
-<Plugin lua>
-    BasePath "/etc/collectd/"
-    Script "wifi_utilization_to_collectd.lua"
-    Script "wifi_clients_to_collectd.lua"
-</Plugin>
-```
+#### For OpenWrt 25.12 and later (.apk)
+1. Download the latest `.apk` file to your router.
+2. Install it using `apk`:
+   ```bash
+   apk add --allow-untrusted wifi2collectd_*.apk
+   ```
 
-4. Restart collectd:
-```bash
-/etc/init.d/collectd restart
-```
+The package will automatically configure LuCI statistics and restart all necessary services upon installation.
+
+---
+
+### Option 2: Compiling from Source (Using OpenWrt Feed)
+If you prefer to build the package yourself using the OpenWrt SDK or Buildroot:
+
+1. Add the feed to your `feeds.conf` or `feeds.conf.default`:
+   ```text
+   src-git wifi2collectd https://github.com/mstojek/wifi2collectd.git
+   ```
+
+2. Update and install the feed:
+   ```bash
+   ./scripts/feeds update wifi2collectd
+   ./scripts/feeds install -p wifi2collectd
+   ```
+
+3. Select the package in `make menuconfig`:
+   `Utilities` -> `wifi2collectd`
+
+4. Compile the package:
+   ```bash
+   make package/wifi2collectd/compile V=s
+   ```
+
+---
+
+### Option 3: Manual Installation
+1. Make sure that you have the required dependencies installed:
+   ```bash
+   opkg update
+   opkg install collectd collectd-mod-lua iw luci-app-statistics
+   ```
+
+2. Copy the Lua plugin files to your router:
+   ```bash
+   scp package/wifi2collectd/files/usr/share/collectd-mod-lua/wifi_utilization_to_collectd.lua root@your-router:/usr/share/collectd-mod-lua/
+   scp package/wifi2collectd/files/usr/share/collectd-mod-lua/wifi_clients_to_collectd.lua root@your-router:/usr/share/collectd-mod-lua/
+   ```
+
+3. Copy the collectd configuration snippets:
+   ```bash
+   scp package/wifi2collectd/files/etc/collectd/conf.d/wifi_utilization.conf root@your-router:/etc/collectd/conf.d/
+   scp package/wifi2collectd/files/etc/collectd/conf.d/wifi_clients.conf root@your-router:/etc/collectd/conf.d/
+   ```
+
+4. Copy the LuCI RRD definition:
+   ```bash
+   scp package/wifi2collectd/files/www/luci-static/resources/statistics/rrdtool/definitions/wifi_radio.js root@your-router:/www/luci-static/resources/statistics/rrdtool/definitions/
+   ```
+
+5. Configure LuCI statistics to include the custom config directory and restart services:
+   ```bash
+   uci set luci_statistics.collectd.Include='/etc/collectd/conf.d'
+   uci commit luci_statistics
+   rm -rf /tmp/luci-indexcache /tmp/luci-modulecache/
+   /etc/init.d/luci_statistics restart
+   /etc/init.d/collectd restart
+   /etc/init.d/rpcd restart
+   ```
 
 ## Collected Metrics
 
@@ -70,7 +123,7 @@ The plugin tries to resolve MAC addresses to hostnames in the following order:
 
 ## Configuration Options
 
-At the top of each script, you can modify:
+At the top of each script (`/usr/share/collectd-mod-lua/wifi_*.lua`), you can modify:
 - `debug = true/false`: Enable/disable debug logging
 - `host = ''`: Set the hostname for collectd values (default: use system hostname)
 - `plugin_name = "wifi_radio"`: Change the plugin name
@@ -79,8 +132,8 @@ At the top of each script, you can modify:
 
 - Run the scripts manually to check for errors:
 ```bash
-lua -e "collectd=nil" /etc/collectd/wifi_utilization_to_collectd.lua
-lua -e "collectd=nil" /etc/collectd/wifi_clients_to_collectd.lua
+lua -e "collectd=nil" /usr/share/collectd-mod-lua/wifi_utilization_to_collectd.lua
+lua -e "collectd=nil" /usr/share/collectd-mod-lua/wifi_clients_to_collectd.lua
 ```
 
 - Check syslog for collectd errors:
@@ -95,8 +148,6 @@ This plugin produces metrics that are ideal for monitoring:
 - Connected client count
 - Per-client connection quality
 - Traffic patterns and signal strength
-
-Use with Grafana or other visualization tools for a complete WiFi monitoring solution. Details TBD
 
 ## License
 
